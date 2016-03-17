@@ -19,7 +19,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="9L6-HU-c0G">
-                                <rect key="frame" x="90" y="96" width="200" height="230"/>
+                                <rect key="frame" x="90" y="96" width="99" height="230"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Name" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RCH-XO-m2o">
                                         <rect key="frame" x="0.0" y="0.0" width="46" height="20"/>
@@ -47,23 +47,30 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qpJ-4D-7wN">
-                                        <rect key="frame" x="0.0" y="158" width="46" height="30"/>
-                                        <state key="normal" title="Button"/>
+                                        <rect key="frame" x="0.0" y="158" width="99" height="30"/>
+                                        <state key="normal" title="Upload events"/>
+                                        <connections>
+                                            <action selector="uploadEvents:" destination="BYZ-38-t0r" eventType="touchUpInside" id="yoU-CI-xOT"/>
+                                        </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Y9W-hy-EZK">
-                                        <rect key="frame" x="0.0" y="200" width="46" height="30"/>
-                                        <state key="normal" title="Button"/>
+                                        <rect key="frame" x="0.0" y="200" width="88" height="30"/>
+                                        <state key="normal" title="New Session"/>
+                                        <connections>
+                                            <action selector="newSession:" destination="BYZ-38-t0r" eventType="touchUpInside" id="IPc-zO-lc7"/>
+                                        </connections>
                                     </button>
                                 </subviews>
                             </stackView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstAttribute="trailing" secondItem="9L6-HU-c0G" secondAttribute="trailing" constant="310" id="DqU-zz-Cky"/>
-                            <constraint firstItem="9L6-HU-c0G" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="70" id="Of0-99-Aw3"/>
-                            <constraint firstItem="9L6-HU-c0G" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="76" id="Wq2-QZ-7G2"/>
+                            <constraint firstItem="9L6-HU-c0G" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="76" id="Jah-p3-co5"/>
+                            <constraint firstItem="9L6-HU-c0G" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="70" id="mOg-34-TeI"/>
                         </constraints>
                     </view>
+                    <toolbarItems/>
+                    <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="nameLabel" destination="RCH-XO-m2o" id="59m-cn-EKb"/>
                         <outlet property="nameTextField" destination="6Lr-ZZ-Vsu" id="U5O-qP-hLZ"/>

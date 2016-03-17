@@ -43,8 +43,26 @@ class ViewController: UIViewController, UITextFieldDelegate {
 
     }
     
-    @IBAction func SendEvent(sender: UIButton) {
+    @IBAction func uploadEvents(sender: UIButton) {
+        if !DDNASDK.sharedInstance().uploading{
+            DDNASDK.sharedInstance().upload()
+        }else{
+            NSLog("event upload already running, not trying again right now.")
+        }
+        nameLabel.text = "Event upload initiated"
+    }
+    @IBAction func newSession(sender: UIButton) {
+        nameLabel.text = "Created New Session"
+        DDNASDK.sharedInstance().newSession()
         
+    }
+    
+    @IBAction func SendEvent(sender: UIButton) {
+        DDNASDK.sharedInstance().recordEventWithName("options", eventParams: [
+            "action" : "press button",
+            "option" : "SendEvent"
+            ])
+        nameLabel.text = "Recorded options event"
     }
     
     override func viewDidLoad() {
@@ -52,7 +70,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         // Do any additional setup after loading the view, typically from a nib.
         nameTextField.delegate = self
         
-        NSLog("hello")
+        NSLog("Application Started")
 
         
     }
