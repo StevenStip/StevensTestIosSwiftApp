@@ -1,0 +1,10 @@
+PODS:
+  - DeltaDNA (4.0.0)
+
+DEPENDENCIES:
+  - DeltaDNA (~> 4.0)
+
+SPEC CHECKSUMS:
+  DeltaDNA: e144d76a343c124fa6c4b9f8568ed2fdd3261b2b
+
+COCOAPODS: 0.39.0

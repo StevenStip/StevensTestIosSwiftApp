@@ -1,0 +1,6 @@
+framework module Pods_testAppSDKIntegration {
+  umbrella header "Pods-testAppSDKIntegration-umbrella.h"
+
+  export *
+  module * { export * }
+}
