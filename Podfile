@@ -7,7 +7,7 @@ source 'https://github.com/deltaDNA/CocoaPods.git'
  use_frameworks!
 
 target 'testAppSDKIntegration' do
- pod 'DeltaDNA', '~> 4.0'
+ pod 'DeltaDNA', '~> 4.1'
 end
 
 # Enable extra logging

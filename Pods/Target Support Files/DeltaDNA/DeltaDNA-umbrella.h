@@ -7,6 +7,7 @@
 #import "DDNAEngageService.h"
 #import "DDNAEvent.h"
 #import "DDNAEventStoreProtocol.h"
+#import "DDNAImageMessage.h"
 #import "DDNAInstanceFactory.h"
 #import "DDNALog.h"
 #import "DDNANetworkRequest.h"

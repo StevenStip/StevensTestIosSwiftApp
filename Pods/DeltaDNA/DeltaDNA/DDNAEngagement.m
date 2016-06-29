@@ -16,6 +16,7 @@
 
 #import "DDNAEngagement.h"
 #import "DDNAParams.h"
+#import "NSDictionary+DeltaDNA.h"
 
 @interface DDNAEngagement ()
 
@@ -59,5 +60,10 @@
     };
 }
 
+- (void)setRaw:(NSString *)raw
+{
+    _json = [NSDictionary dictionaryWithJSONString:raw];
+    _raw = raw;
+}
 
 @end

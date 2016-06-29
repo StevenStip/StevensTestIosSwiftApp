@@ -21,10 +21,6 @@ extern NSString *const DDNA_ENGAGE_API_VERSION;
 
 extern NSString *const DDNA_EVENT_STORAGE_PATH;
 extern NSString *const DDNA_ENGAGE_STORAGE_PATH;
-extern NSString *const DDNA_COLLECT_URL_PATTERN;
-extern NSString *const DDNA_COLLECT_HASH_URL_PATTERN;
-extern NSString *const DDNA_ENGAGE_URL_PATTERN;
-extern NSString *const DDNA_ENGAGE_HASH_URL_PATTERN;
 
 extern NSUInteger const DDNA_MAX_EVENT_STORE_BYTES;
 
@@ -93,6 +89,11 @@ extern NSUInteger const DDNA_MAX_EVENT_STORE_BYTES;
  Controls if the event store is used or not (default YES).
  */
 @property (nonatomic, assign) BOOL useEventStore;
+
+/**
+ Controls the amount of time the app can be backgrounded before we consider a new session to have started.  A value of 0 disables automatically generating new sessions.
+ */
+@property (nonatomic, assign) int sessionTimeoutSeconds;
 
 /**
  Returns the path to the privates settings directory on 

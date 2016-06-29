@@ -48,8 +48,7 @@
 @property (nonatomic, copy, readwrite) NSString *userID;
 @property (nonatomic, copy, readwrite) NSString *sessionID;
 @property (nonatomic, copy, readwrite) NSString *platform;
-
-- (void)didReceiveNotification:(NSNotification *) notification;
+@property (nonatomic, strong) NSDate *lastActiveDate;
 
 @end
 
@@ -69,6 +68,7 @@ static NSString *const PP_KEY_CLIENT_VERSION = @"DDSDK_CLIENT_VERSION";
 static NSString *const PP_KEY_PUSH_NOTIFICATION_TOKEN = @"DDSDK_PUSH_NOTIFICATION_TOKEN";
 
 static NSString *const DD_EVENT_STARTED = @"DDNASDKStarted";
+static NSString *const DD_EVENT_NEW_SESSION = @"DDNASDKNewSession";
 
 static NSString *const kUserIdKey = @"DeltaDNA UserId";
 static NSString *const kPushNotificationTokenKey = @"DeltaDNA PushNotificationToken";
@@ -98,7 +98,9 @@ static NSString *const kPushNotificationTokenKey = @"DeltaDNA PushNotificationTo
         _taskQueue = dispatch_queue_create("com.deltadna.TaskQueue", NULL);
         dispatch_suspend(_taskQueue);
         
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveNotification:) name:DD_EVENT_STARTED object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidReceiveNotification:) name:DD_EVENT_STARTED object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillEnterForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
         
         if (self.settings.useEventStore) {
             DDNALogDebug(@"Using persistent event store for session.");
@@ -152,7 +154,8 @@ static NSString *const kPushNotificationTokenKey = @"DeltaDNA PushNotificationTo
         DDNALogDebug(@"Starting SDK with user id %@", self.userID);
         
         self.platform = [DDNAClientInfo sharedInstance].platform;
-        self.sessionID = [DDNASDK generateSessionID];
+        [self newSession];
+        
         self.engageService = [[DDNAInstanceFactory sharedInstance] buildEngageService];
         self.collectService = [[DDNAInstanceFactory sharedInstance] buildCollectService];
         
@@ -183,6 +186,8 @@ static NSString *const kPushNotificationTokenKey = @"DeltaDNA PushNotificationTo
 - (void) newSession
 {
     self.sessionID = [DDNASDK generateSessionID];
+    DDNALogDebug(@"Starting new session %@", self.sessionID);
+    [[NSNotificationCenter defaultCenter] postNotificationName:DD_EVENT_NEW_SESSION object:self];
 }
 
 - (void) stop
@@ -215,11 +220,10 @@ static NSString *const kPushNotificationTokenKey = @"DeltaDNA PushNotificationTo
     NSMutableDictionary *eventSchema = [NSMutableDictionary dictionaryWithDictionary:[event dictionary]];
     [eventSchema setObject:self.userID forKey:@"userID"];
     [eventSchema setObject:self.sessionID forKey:@"sessionID"];
+    [eventSchema setObject:[[NSUUID UUID] UUIDString] forKey:@"eventUUID"];
     [eventSchema setObject:[DDNASDK getCurrentTimestamp] forKey:@"eventTimestamp"];
     
-    if (![self.eventStore pushEvent:eventSchema]) {
-        DDNALogWarn(@"Event store full, dropping event");
-    }
+    [self.eventStore pushEvent:eventSchema];
 }
 
 - (void)recordEventWithName:(NSString *)eventName
@@ -278,15 +282,62 @@ static NSString *const kPushNotificationTokenKey = @"DeltaDNA PushNotificationTo
         engageRequest.parameters = dict[@"parameters"];
         
         [self.engageService request:engageRequest handler:^(NSString *response, NSInteger statusCode, NSError *error) {
-            if (response && completionHandler) {
+            if (error || statusCode != 200) {
+                DDNALogWarn(@"Engagement for '%@' failed with %ld: %@",
+                            engagement.decisionPoint, (long)statusCode, error ? error.localizedDescription : response);
+            }
+            if (completionHandler) {
                 completionHandler([NSDictionary dictionaryWithJSONString:response], statusCode, error);
-            } else {
-                DDNALogWarn(@"Engagement failed with status code %ld: %@", (long)statusCode, [error localizedDescription]);
             }
         }];
     }
     @catch (NSException *exception) {
-        DDNALogWarn(@"Engagement request failed: %@", exception.reason);
+        DDNALogWarn(@"Engagement for '%@' failed: %@", engagement.decisionPoint, exception.reason);
+    }
+}
+
+- (void)requestEngagement:(DDNAEngagement *)engagement engagementHandler:(void (^)(DDNAEngagement *))engagementHandler
+{
+    if (!self.started) {
+        @throw([NSException exceptionWithName:@"DDNANotStartedException" reason:@"You must first start the deltaDNA SDK" userInfo:nil]);
+    }
+    
+    if ([NSString stringIsNilOrEmpty:self.engageURL]) {
+        @throw([NSException exceptionWithName:NSInvalidArgumentException reason:@"Engage URL not set" userInfo:nil]);
+    }
+    
+    if (engagement == nil) {
+        @throw([NSException exceptionWithName:NSInvalidArgumentException reason:@"engagement cannot be nil" userInfo:nil]);
+    }
+    
+    if (engagementHandler == nil) {
+        @throw([NSException exceptionWithName:NSInvalidArgumentException reason:@"engagementHandler cannot be nil" userInfo:nil]);
+    }
+    
+    @try {
+        
+        NSDictionary *dict = [engagement dictionary];
+        
+        DDNAEngageRequest *engageRequest = [[DDNAEngageRequest alloc] initWithDecisionPoint:dict[@"decisionPoint"]
+                                                                                     userId:self.userID
+                                                                                  sessionId:self.sessionID];
+        engageRequest.flavour = dict[@"flavour"];
+        engageRequest.parameters = dict[@"parameters"];
+        
+        [self.engageService request:engageRequest handler:^(NSString *response, NSInteger statusCode, NSError *error) {
+            if (error || statusCode != 200) {
+                DDNALogWarn(@"Engagement for '%@' failed with %ld: %@",
+                            engagement.decisionPoint, (long)statusCode, error ? error.localizedDescription : response);
+            }
+            engagement.raw = response;
+            engagement.statusCode = statusCode;
+            engagement.error = error;
+            
+            engagementHandler(engagement);
+        }];
+    }
+    @catch (NSException *exception) {
+        DDNALogWarn(@"Engagement for '%@' failed: %@", engagement.decisionPoint, exception.reason);
     }
 }
 
@@ -578,13 +629,29 @@ static NSString *const kPushNotificationTokenKey = @"DeltaDNA PushNotificationTo
     }
 }
 
-- (void) didReceiveNotification:(NSNotification *)notification
+- (void)appDidReceiveNotification:(NSNotification *)notification
 {
     if ([[notification name] isEqualToString:DD_EVENT_STARTED])
     {
         DDNALogDebug(@"Received SDK started notification");
         if (!_started) {
             dispatch_resume(_taskQueue);
+        }
+    }
+}
+
+- (void)appWillResignActive:(NSNotification *)notification
+{
+    self.lastActiveDate = [NSDate date];
+}
+
+- (void)appWillEnterForeground:(NSNotification *)notification
+{
+    if (self.settings.sessionTimeoutSeconds > 0) {
+        NSTimeInterval backgroundSeconds = [[NSDate date] timeIntervalSinceDate:self.lastActiveDate];
+        if (backgroundSeconds > self.settings.sessionTimeoutSeconds) {
+            self.lastActiveDate = nil;
+            [self newSession];
         }
     }
 }

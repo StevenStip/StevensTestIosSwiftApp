@@ -1,1 +1,0 @@
-../../../DeltaDNA/DeltaDNA/DDNALog.h

@@ -65,7 +65,7 @@
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"[CollectRequest] Events=%ld Bytes=%u",
+    return [NSString stringWithFormat:@"[CollectRequest] Events=%ld Bytes=%lu",
             (long)self.eventCount,
             [self.eventJSON dataUsingEncoding:NSUTF8StringEncoding].length];
 }
@@ -100,7 +100,7 @@
     
     NSString *jsonPayload = [collectRequest toJSON];
     
-    NSURL *url = [NSURL URLWithEngageEndpoint:self.collectURL
+    NSURL *url = [NSURL URLWithCollectEndpoint:self.collectURL
                                environmentKey:self.environmentKey
                                       payload:jsonPayload
                                    hashSecret:self.hashSecret];
