@@ -38,6 +38,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         DDNASDK.sharedInstance().clientVersion = "TestAppSDKIntegration"
         DDNASDK.sharedInstance().startWithEnvironmentKey("22079697190426055695055037414340",
+                                                         //collectURL: "http://192.168.30.54:8080",
             collectURL: "http://collect4792jmprb.deltadna.net/collect/api",
             engageURL: "http://engage4792jmprb.deltadna.net")
 
@@ -62,6 +63,37 @@ class ViewController: UIViewController, UITextFieldDelegate {
             "action" : "press button",
             "option" : "SendEvent"
             ])
+        DDNASDK.sharedInstance().recordEventWithName("transaction", eventParams: [
+            "transactionName": "fishingBought",
+            "transactionType": "PURCHASE",
+            "productsReceived":[
+                "items" : [
+                    [
+                        "item" : [
+                            "itemAmount" : 1,
+                            "itemName" : "fishingVillage",
+                            "itemType" : "investmetn"
+                        ]
+                    ]
+                ]
+            ],
+            "productsSpent":[
+                "realCurrency" : [
+                    "realCurrencyAmount" : 150,
+                    "realCurrencyType" : "USD"
+                ],
+                "virtualCurrencies" : [
+                    [
+                        "virtualCurrency" : [
+                            "virtualCurrencyAmount" : 20,
+                            "virtualCurrencyName" : "VIP Points",
+                            "virtualCurrencyType" : "GRIND"
+                        ]
+                    ]
+                ]
+
+            ]
+        ])
         nameLabel.text = "Recorded options event"
     }
     
